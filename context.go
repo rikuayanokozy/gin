@@ -426,6 +426,12 @@ func (c *Context) XML(code int, obj interface{}) {
 	c.Render(code, render.XML{Data: obj})
 }
 
+// Protobuf serializes the given struct as PB binary-stream into response body
+// It also sets the Content-Type as "application/x-protobuf"
+func (c *Context) Protobuf(code int, obj interface{}) {
+	c.Render(code, render.Protobuf{Data: obj})
+}
+
 // String writes the given string into the response body.
 func (c *Context) String(code int, format string, values ...interface{}) {
 	c.Status(code)
@@ -489,6 +495,7 @@ type Negotiate struct {
 	HTMLData interface{}
 	JSONData interface{}
 	XMLData  interface{}
+	PBData   interface{}
 	Data     interface{}
 }
 
@@ -505,6 +512,10 @@ func (c *Context) Negotiate(code int, config Negotiate) {
 	case binding.MIMEXML:
 		data := chooseData(config.XMLData, config.Data)
 		c.XML(code, data)
+
+	case binding.MIMEPROTOBUF:
+		data := chooseData(config.PBData, config.Data)
+		c.Protobuf(code, data)
 
 	default:
 		c.AbortWithError(http.StatusNotAcceptable, errors.New("the accepted formats are not offered by the server"))
